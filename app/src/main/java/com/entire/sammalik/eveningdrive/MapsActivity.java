@@ -1,16 +1,16 @@
 package com.entire.sammalik.eveningdrive;
 
-import android.*;
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -37,12 +37,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     Location bechtel;
     private GoogleApiClient googleApiClient;
+    protected PowerManager.WakeLock mWakeLock;
     LocationRequestService locationRequestService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+        this.mWakeLock.acquire();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -237,5 +241,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //}
             }
         });
+    }
+    @Override
+    public void onDestroy() {
+        this.mWakeLock.release();
+        locationRequestService.stopLocationUpdates();
+        super.onDestroy();
     }
 }
